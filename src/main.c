@@ -55,7 +55,7 @@ int main(void)
 
     list *asteroids = list_init();
     for (int i = 0; i < 50; i++) {
-        asteroid *a = malloc(sizeof(asteroid));
+        asteroid *a = (asteroid *)malloc(sizeof(asteroid));
         a->accel_x = random_number(10, 100) * 0.01;
         a->accel_y = random_number(10, 100) * 0.01;
         a->speed_x = 0;
@@ -79,7 +79,7 @@ int main(void)
         // TODO: Update your variables here
         //----------------------------------------------------------------------------------
         for (int i = 0; i < asteroids->size; i++) {
-            asteroid *a = list_get(asteroids, i);
+            asteroid *a = (asteroid *)list_get(asteroids, i);
             
             // update position
             a->accel_x *= 0.7;
@@ -116,7 +116,7 @@ int main(void)
         list_node *prev = NULL;
         list_node *n = asteroids->head;
         while (n) {
-            asteroid *a = n->data;
+            asteroid *a = (asteroid *)n->data;
             if (a->targeted) {
                 if (!prev) {
                     asteroids->head = n->next;
@@ -157,18 +157,18 @@ int main(void)
             DrawFPS(100, 100);
 
             for (int i = 0; i < asteroids->size; i++) {
-                asteroid *a = list_get(asteroids, i);
+                asteroid *a = (asteroid *)list_get(asteroids, i);
                 if (a->targeted) {
-                    DrawRectangle(a->x - a->size*3, a->y - a->size*3, a->size*6, a->size*6, (Color){0, 200, 100, 255});   
+                    DrawRectangle(a->x - a->size*3, a->y - a->size*3, a->size*6, a->size*6, {0, 200, 100, 255});   
                 } else {
-                    DrawRectangle(a->x - a->size*3, a->y - a->size*3, a->size*6, a->size*6, (Color){200, 200, 200, 255});   
+                    DrawRectangle(a->x - a->size*3, a->y - a->size*3, a->size*6, a->size*6, {200, 200, 100, 255});   
                 }
-                DrawText(TextFormat("A%d", i), a->x, a->y, 4, (Color){0, 0, 0, 255});
+                DrawText(TextFormat("A%d", i), a->x, a->y, 4, {0, 0, 0, 255});
             }
 
             for (int i = 0; i < 5; i++) {
                 target t = targets[i];
-                DrawRectangle(t.x-6, t.y-6, 12, 12, (Color){200, 0, 0, 255}); 
+                DrawRectangle(t.x-6, t.y-6, 12, 12, {200, 0, 0, 255}); 
             }
         EndTextureMode();     
 
@@ -178,7 +178,7 @@ int main(void)
             // Render generated texture using selected postprocessing shader
             BeginShaderMode(shader);
                 // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom)
-                DrawTextureRec(canvas.texture, (Rectangle){ 0, 0, (float)canvas.texture.width, (float)-canvas.texture.height }, (Vector2){ 0, 0 }, WHITE);
+                DrawTextureRec(canvas.texture, { 0, 0, (float)canvas.texture.width, (float)-canvas.texture.height }, { 0, 0 }, WHITE);
             EndShaderMode();
 
         EndDrawing();
@@ -191,7 +191,7 @@ int main(void)
     UnloadShader(shader);       // Unload shader
     int size = asteroids->size;
     for (int i = 0; i < size; i++) {
-        asteroid *e = list_pop(asteroids);
+        asteroid *e = (asteroid *)list_pop(asteroids);
         free(e);
     }
     free(asteroids);

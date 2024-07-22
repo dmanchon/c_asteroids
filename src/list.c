@@ -4,7 +4,7 @@
 
 
 list* list_init() {
-    list *l = malloc(sizeof(list));
+    list *l = (list *)malloc(sizeof(list));
     assert(l != NULL);
 
     l->head = NULL;
@@ -15,21 +15,21 @@ list* list_init() {
 
 void list_push(list* l, void* data) {
     list_node *n = l->head;
-    list_node *new = malloc(sizeof(list_node));
-    assert(new != NULL);
+    list_node *node = (list_node *)malloc(sizeof(list_node));
+    assert(node != NULL);
 
-    new->data = data;
-    new->next = NULL;
+    node->data = data;
+    node->next = NULL;
 
     // empty list
     if (!l->head) {
-        l->head = new;
+        l->head = node;
     } else {
         // find the last node
         while (n->next) {
             n = n->next;
         }
-        n->next = new;
+        n->next = node;
     }
     l->size++;
 }
@@ -77,14 +77,14 @@ void list_insert_after(list* l, void* data, int index) {
         n = n->next;
     }
 
-    list_node *new = malloc(sizeof(list_node));
-    assert(new != NULL);
+    list_node *node = (list_node *)malloc(sizeof(list_node));
+    assert(node != NULL);
 
-    new->data = data;
-    new->next = n->next;
+    node->data = data;
+    node->next = n->next;
 
     l->size++;
-    n->next = new;
+    n->next = node;
 }
 
 void* list_get(list* l, int index) {
