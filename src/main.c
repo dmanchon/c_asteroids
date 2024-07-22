@@ -12,7 +12,7 @@ typedef struct asteroid asteroid;
 struct  asteroid {
     float x, y, size;
     float speed_x, speed_y, accel_x, accel_y; 
-    bool targeted;
+    int countdown;
 };
 
 typedef struct target target;
@@ -63,7 +63,7 @@ int main(void)
         a->x = GetRandomValue(100, screenWidth - 100);
         a->y = GetRandomValue(100, screenHeight - 100);
         a->size = GetRandomValue(2, 16);
-        a->targeted = 0;
+        a->countdown = -1;
         
         list_push(asteroids, a);
     }
@@ -105,11 +105,17 @@ int main(void)
                 a->y += a->speed_y;
             }
 
+
             // colisions with targets
             for (int j = 0; j < 5; j++) {
                 if (check_colision(a, &targets[j])) {
-                    a->targeted = 1;    
+                    a->countdown = 60/2; // 500ms at 60fps    
                 }
+            }
+
+            // time for destruction
+            if (a->countdown != -1) {
+                a->countdown--;
             }
         }
 
@@ -117,7 +123,7 @@ int main(void)
         list_node *n = asteroids->head;
         while (n) {
             asteroid *a = n->data;
-            if (a->targeted) {
+            if (a->countdown == 0) {
                 if (!prev) {
                     asteroids->head = n->next;
                     free(a);
@@ -158,8 +164,8 @@ int main(void)
 
             for (int i = 0; i < asteroids->size; i++) {
                 asteroid *a = list_get(asteroids, i);
-                if (a->targeted) {
-                    DrawRectangle(a->x - a->size*3, a->y - a->size*3, a->size*6, a->size*6, (Color){0, 200, 100, 255});   
+                if (a->countdown >= 0) {
+                    DrawRectangle(a->x - a->size*3, a->y - a->size*3, a->size*6, a->size*6, (Color){255, 200, 200, 255});   
                 } else {
                     DrawRectangle(a->x - a->size*3, a->y - a->size*3, a->size*6, a->size*6, (Color){200, 200, 200, 255});   
                 }
@@ -169,6 +175,7 @@ int main(void)
             for (int i = 0; i < 5; i++) {
                 target t = targets[i];
                 DrawRectangle(t.x-6, t.y-6, 12, 12, (Color){200, 0, 0, 255}); 
+                DrawText(TextFormat("X%d", i), t.x, t.y, 4, (Color){0, 0, 0, 255});
             }
         EndTextureMode();     
 
