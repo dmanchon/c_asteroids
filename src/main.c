@@ -119,11 +119,30 @@ int main(void)
             }
         }
 
+        // how to abstract this?
+        // list_delete_by_fn(list *l, void (*destroy)(void *data))
         list_node *prev = NULL;
         list_node *n = asteroids->head;
         while (n) {
             asteroid *a = n->data;
+
             if (a->countdown == 0) {
+                // split and create small parts
+                if (a->size > 10) {
+                    for (int i = 0; i < 4; i++) {
+                        asteroid *splinter = malloc(sizeof(asteroid));
+                        splinter->speed_x = random_number(a->speed_x*0.5, a->speed_x*2);
+                        splinter->speed_y = random_number(a->speed_y*0.5, a->speed_y*2);
+                        splinter->accel_x = random_number(a->accel_x*0.5, a->accel_x*2);
+                        splinter->accel_y = random_number(a->accel_y*0.5, a->accel_y*2);
+                        splinter->x = a->x;
+                        splinter->y = a->y;
+                        splinter->countdown = -1;
+                        splinter->size = a->size / 4;
+
+                        list_push(asteroids, splinter);
+                    }
+                }
                 if (!prev) {
                     asteroids->head = n->next;
                     free(a);
