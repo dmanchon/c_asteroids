@@ -131,10 +131,10 @@ int main(void)
                 if (a->size > 10) {
                     for (int i = 0; i < 4; i++) {
                         asteroid *splinter = malloc(sizeof(asteroid));
-                        splinter->speed_x = random_number(a->speed_x*0.5, a->speed_x*2);
-                        splinter->speed_y = random_number(a->speed_y*0.5, a->speed_y*2);
-                        splinter->accel_x = random_number(a->accel_x*0.5, a->accel_x*2);
-                        splinter->accel_y = random_number(a->accel_y*0.5, a->accel_y*2);
+                        splinter->speed_x = a->speed_x;
+                        splinter->speed_y = a->speed_y;
+                        splinter->accel_x = random_number(-100, 100) * 0.01;
+                        splinter->accel_y = random_number(-100, 100) * 0.01;
                         splinter->x = a->x;
                         splinter->y = a->y;
                         splinter->countdown = -1;
