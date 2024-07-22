@@ -1,21 +1,21 @@
 [
 {
-  "directory": "/home/dmanchon/repos/c_linked_list",
+  "directory": "/home/dmanchon/repos/c_asteroids",
   "arguments": ["/usr/bin/gcc", "-c", "-m64", "-g", "-O0", "-std=c99", "-Iinclude", "-isystem", "/home/dmanchon/.xmake/packages/r/raylib/5.0/aeed26e13a7a466f9d7c7ad6dd3b75c2/include", "-o", "build/.objs/c_linked_list/linux/x86_64/debug/src/main.c.o", "src/main.c"],
   "file": "src/main.c"
 },
 {
-  "directory": "/home/dmanchon/repos/c_linked_list",
+  "directory": "/home/dmanchon/repos/c_asteroids",
   "arguments": ["/usr/bin/gcc", "-c", "-m64", "-g", "-O0", "-std=c99", "-Iinclude", "-isystem", "/home/dmanchon/.xmake/packages/r/raylib/5.0/aeed26e13a7a466f9d7c7ad6dd3b75c2/include", "-o", "build/.objs/c_linked_list/linux/x86_64/debug/src/list.c.o", "src/list.c"],
   "file": "src/list.c"
 },
 {
-  "directory": "/home/dmanchon/repos/c_linked_list",
+  "directory": "/home/dmanchon/repos/c_asteroids",
   "arguments": ["/usr/bin/gcc", "-c", "-m64", "-g", "-O0", "-Iinclude", "-isystem", "/home/dmanchon/.xmake/packages/u/unity_test/v2.6.0/d70e9ff4ac7d4ca7b6d1e626d0962bda/include", "-o", "build/.objs/test_list/linux/x86_64/debug/tests/test_list.c.o", "tests/test_list.c"],
   "file": "tests/test_list.c"
 },
 {
-  "directory": "/home/dmanchon/repos/c_linked_list",
+  "directory": "/home/dmanchon/repos/c_asteroids",
   "arguments": ["/usr/bin/gcc", "-c", "-m64", "-g", "-O0", "-Iinclude", "-isystem", "/home/dmanchon/.xmake/packages/u/unity_test/v2.6.0/d70e9ff4ac7d4ca7b6d1e626d0962bda/include", "-o", "build/.objs/test_list/linux/x86_64/debug/src/list.c.o", "src/list.c"],
   "file": "src/list.c"
 }]

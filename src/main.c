@@ -53,6 +53,8 @@ int main(void)
     };
     int target_cursor = 0;
 
+    bool time_freezed = 0;
+
     list *asteroids = list_init();
     for (int i = 0; i < 50; i++) {
         asteroid *a = malloc(sizeof(asteroid));
@@ -74,6 +76,10 @@ int main(void)
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+
+        if (IsKeyDown(KEY_SPACE)) {
+            goto skip_update;
+        }
         // Update
         //----------------------------------------------------------------------------------
         // TODO: Update your variables here
@@ -164,15 +170,12 @@ int main(void)
             n = n->next;
         }
 
+skip_update:
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             int i = target_cursor++ % 5;
             Vector2 pos = GetMousePosition();
             targets[i].x = pos.x;
             targets[i].y = pos.y;
-        }
-
-        if (IsKeyReleased(KEY_SPACE)) {
-            
         }
 
         // Draw

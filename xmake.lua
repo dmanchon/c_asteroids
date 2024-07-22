@@ -19,3 +19,5 @@ for _, file in ipairs(os.files("tests/test_*.c")) do
         add_packages("unity_test")
         add_includedirs("include")
 end
+
+set_toolchains("gcc", "clang", "mingw")
