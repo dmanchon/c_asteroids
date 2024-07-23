@@ -7,6 +7,8 @@
 
 //https://www.shadertoy.com/view/Ndt3Dj
 
+#define NOT_STARTED -1
+
 
 typedef struct asteroid asteroid;
 struct  asteroid {
@@ -48,6 +50,8 @@ int main(void)
     Shader shader = LoadShader(0, "resources/fisheye.fs");
     assert(IsShaderReady(shader));
 
+
+    // init state
     target targets[5] = {
         {0}, {0}, {0}, {0}, {0},
     };
@@ -65,7 +69,7 @@ int main(void)
         a->x = GetRandomValue(100, screenWidth - 100);
         a->y = GetRandomValue(100, screenHeight - 100);
         a->size = GetRandomValue(2, 16);
-        a->countdown = -1;
+        a->countdown = NOT_STARTED;
         
         list_push(asteroids, a);
     }
@@ -78,9 +82,9 @@ int main(void)
     {
 
         if (IsKeyDown(KEY_SPACE)) {
-            goto skip_update;
+            goto draw;
         }
-        // Update
+        // Update state
         //----------------------------------------------------------------------------------
         // TODO: Update your variables here
         //----------------------------------------------------------------------------------
@@ -120,20 +124,18 @@ int main(void)
             }
 
             // time for destruction
-            if (a->countdown != -1) {
+            if (a->countdown != NOT_STARTED) {
                 a->countdown--;
             }
         }
 
-        // how to abstract this?
-        // list_delete_by_fn(list *l, void (*destroy)(void *data))
-        list_node *prev = NULL;
+    
         list_node *n = asteroids->head;
         while (n) {
             asteroid *a = n->data;
 
             if (a->countdown == 0) {
-                // split and create small parts
+                // split and create small parts only if big enough
                 if (a->size > 10) {
                     for (int i = 0; i < 4; i++) {
                         asteroid *splinter = malloc(sizeof(asteroid));
@@ -149,28 +151,16 @@ int main(void)
                         list_push(asteroids, splinter);
                     }
                 }
-                if (!prev) {
-                    asteroids->head = n->next;
-                    free(a);
-                    free(n);
-                    n = asteroids->head;
-                } else {
-                    prev->next = n->next;
-                 
-                    free(a);
-                    free(n);
-
-                    n = prev->next;
-                }
-
-                asteroids->size--;
-                continue;
+                
+                n = list_delete_node(asteroids, n);
+                free(a);
+            } else {
+                n = n->next;
             }
-            prev = n;
-            n = n->next;
         }
 
-skip_update:
+draw:
+        // input
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             int i = target_cursor++ % 5;
             Vector2 pos = GetMousePosition();

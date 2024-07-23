@@ -131,3 +131,29 @@ void list_free(list* l) {
     }
     free(l);
 }
+
+// remove the node and return the next
+list_node *list_delete_node(list *l, list_node *node) {
+    list_node *prev = NULL;
+    list_node *n = l->head;
+    
+    while (n) {
+        if (n == node) {
+            if (!prev) {
+                l->head = n->next;
+                free(n);
+                l->size--;
+                // return the next
+                return l->head;
+            } else {
+                prev->next = n->next;
+                free(n);
+                l->size--;
+                // return the next
+                return prev->next;
+            }            
+        }
+        prev = n;
+        n = n->next;
+    }
+}
