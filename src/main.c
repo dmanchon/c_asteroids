@@ -8,6 +8,7 @@
 //https://www.shadertoy.com/view/Ndt3Dj
 
 #define NOT_STARTED -1
+#define NUM_TARGETS  5
 
 
 typedef struct asteroid asteroid;
@@ -17,22 +18,125 @@ struct  asteroid {
     int countdown;
 };
 
-typedef struct target target;
-struct target {
-    int x, y;
+
+typedef struct state state;
+struct state {
+    int width, height;
+    Rectangle targets[NUM_TARGETS];
+    list *asteroids;
+    bool time_freezed;
+    int target_cursor;
 };
 
-float random_number(int from, int to) {
-    int r = GetRandomValue(0, 100) % 2 == 0;
-    if (r) {
-        return -1 * GetRandomValue(from, to);
-    } else {
-        return GetRandomValue(from, to);
+state *init_state(int width, int height, int num_asteroids) {
+    state *s = malloc(sizeof(state));
+    
+    s->width = width;
+    s->height = height;
+
+    for (int i = 0; i < NUM_TARGETS; i++) {
+        s->targets[i] = (Rectangle){width/2, height/2, 6, 6};
+    }
+
+    s->asteroids = list_init();
+    for (int i = 0; i < num_asteroids; i++) {
+        asteroid *a = malloc(sizeof(asteroid));
+        a->accel_x = GetRandomValue(-100, 100) * 0.01;
+        a->accel_y = GetRandomValue(-100, 100) * 0.01;
+        a->speed_x = 0;
+        a->speed_y = 0;
+        a->x = GetRandomValue(100, width - 100);
+        a->y = GetRandomValue(100, height - 100);
+        a->size = GetRandomValue(10, 60);
+        a->countdown = NOT_STARTED;
+        
+        list_push(s->asteroids, a);
+    }
+    s->time_freezed = 0;
+
+    return s;
+}
+
+void update_state(state *s) {
+    for (int i = 0; i < s->asteroids->size; i++) {
+        asteroid *a = list_get(s->asteroids, i);
+        
+        // update position
+        a->accel_x *= 0.7;
+        a->accel_y *= 0.7;
+
+        a->speed_x += a->accel_x;
+        a->speed_y += a->accel_y;
+
+        a->x += a->speed_x;
+        a->y += a->speed_y;
+
+
+        // bounce?
+        if (a->x >= s->width || a->x <= 0) {
+            a->speed_x *= -1;
+            a->accel_x *= -1;
+            a->x += a->speed_x;
+        }
+
+        if (a->y <= 0 || a->y >= s->height) {
+            a->speed_y *= -1;
+            a->accel_y *= -1;
+            a->y += a->speed_y;
+        }
+
+
+        // colisions with targets
+        for (int j = 0; j < 5; j++) {
+            Rectangle r = {a->x, a->y, a->size, a->size};
+            if (CheckCollisionRecs(r, s->targets[j])) {
+                a->countdown = 60/2; // 500ms at 60fps    
+            }
+        }
+
+        // time for destruction
+        if (a->countdown != NOT_STARTED) {
+            a->countdown--;
+        }
+    }
+
+    list_node *n = s->asteroids->head;
+    while (n) {
+        asteroid *a = n->data;
+
+        if (a->countdown == 0) {
+            // split and create small parts only if big enough
+            if (a->size > 50) {
+                for (int i = 0; i < 4; i++) {
+                    asteroid *splinter = malloc(sizeof(asteroid));
+                    splinter->speed_x = a->speed_x;
+                    splinter->speed_y = a->speed_y;
+                    splinter->accel_x = GetRandomValue(-100, 100) * 0.01;
+                    splinter->accel_y = GetRandomValue(-100, 100) * 0.01;
+                    splinter->x = a->x;
+                    splinter->y = a->y;
+                    splinter->countdown = -1;
+                    splinter->size = a->size / 4;
+
+                    list_push(s->asteroids, splinter);
+                }
+            }
+            
+            n = list_delete_node(s->asteroids, n);
+            free(a);
+        } else {
+            n = n->next;
+        }
     }
 }
 
-bool check_colision(asteroid *a, target *t) {
-    return (fabs(a->x - t->x) < a->size*2 && fabs(a->y - t->y) < a->size*2);
+void cleanup_state(state *s) {
+    int size = s->asteroids->size;
+    for (int i = 0; i < size; i++) {
+        asteroid *e = list_pop(s->asteroids);
+        free(e);
+    }
+    free(s->asteroids);
 }
 
 int main(void)
@@ -52,120 +156,24 @@ int main(void)
 
 
     // init state
-    target targets[5] = {
-        {0}, {0}, {0}, {0}, {0},
-    };
-    int target_cursor = 0;
-
-    bool time_freezed = 0;
-
-    list *asteroids = list_init();
-    for (int i = 0; i < 50; i++) {
-        asteroid *a = malloc(sizeof(asteroid));
-        a->accel_x = random_number(10, 100) * 0.01;
-        a->accel_y = random_number(10, 100) * 0.01;
-        a->speed_x = 0;
-        a->speed_y = 0;
-        a->x = GetRandomValue(100, screenWidth - 100);
-        a->y = GetRandomValue(100, screenHeight - 100);
-        a->size = GetRandomValue(2, 16);
-        a->countdown = NOT_STARTED;
-        
-        list_push(asteroids, a);
-    }
-
-
+    state *s = init_state(screenWidth, screenHeight, 50);
     //--------------------------------------------------------------------------------------
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
 
-        if (IsKeyDown(KEY_SPACE)) {
-            goto draw;
-        }
-        // Update state
-        //----------------------------------------------------------------------------------
-        // TODO: Update your variables here
-        //----------------------------------------------------------------------------------
-        for (int i = 0; i < asteroids->size; i++) {
-            asteroid *a = list_get(asteroids, i);
-            
-            // update position
-            a->accel_x *= 0.7;
-            a->accel_y *= 0.7;
-
-            a->speed_x += a->accel_x;
-            a->speed_y += a->accel_y;
-
-            a->x += a->speed_x;
-            a->y += a->speed_y;
-
-
-            // bounce?
-            if (a->x >= screenWidth || a->x <= 0) {
-                a->speed_x *= -1;
-                a->accel_x *= -1;
-                a->x += a->speed_x;
-            }
-
-            if (a->y <= 0 || a->y >= screenHeight) {
-                a->speed_y *= -1;
-                a->accel_y *= -1;
-                a->y += a->speed_y;
-            }
-
-
-            // colisions with targets
-            for (int j = 0; j < 5; j++) {
-                if (check_colision(a, &targets[j])) {
-                    a->countdown = 60/2; // 500ms at 60fps    
-                }
-            }
-
-            // time for destruction
-            if (a->countdown != NOT_STARTED) {
-                a->countdown--;
-            }
+        if (!IsKeyDown(KEY_SPACE)) {
+            // Update state
+            update_state(s);
         }
 
-    
-        list_node *n = asteroids->head;
-        while (n) {
-            asteroid *a = n->data;
-
-            if (a->countdown == 0) {
-                // split and create small parts only if big enough
-                if (a->size > 10) {
-                    for (int i = 0; i < 4; i++) {
-                        asteroid *splinter = malloc(sizeof(asteroid));
-                        splinter->speed_x = a->speed_x;
-                        splinter->speed_y = a->speed_y;
-                        splinter->accel_x = random_number(-100, 100) * 0.01;
-                        splinter->accel_y = random_number(-100, 100) * 0.01;
-                        splinter->x = a->x;
-                        splinter->y = a->y;
-                        splinter->countdown = -1;
-                        splinter->size = a->size / 4;
-
-                        list_push(asteroids, splinter);
-                    }
-                }
-                
-                n = list_delete_node(asteroids, n);
-                free(a);
-            } else {
-                n = n->next;
-            }
-        }
-
-draw:
         // input
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-            int i = target_cursor++ % 5;
+            int i = s->target_cursor++ % 5;
             Vector2 pos = GetMousePosition();
-            targets[i].x = pos.x;
-            targets[i].y = pos.y;
+            s->targets[i].x = pos.x;
+            s->targets[i].y = pos.y;
         }
 
         // Draw
@@ -174,20 +182,21 @@ draw:
             ClearBackground(RAYWHITE);  // Clear texture background
             DrawFPS(100, 100);
 
-            for (int i = 0; i < asteroids->size; i++) {
-                asteroid *a = list_get(asteroids, i);
+            for (int i = 0; i < s->asteroids->size; i++) {
+                asteroid *a = list_get(s->asteroids, i);
+                Rectangle r = {a->x, a->y, a->size, a->size};
                 if (a->countdown >= 0) {
-                    DrawRectangle(a->x - a->size*3, a->y - a->size*3, a->size*6, a->size*6, (Color){255, 200, 200, 255});   
+                    DrawRectangleRec(r, (Color){255, 200, 200, 255});   
                 } else {
-                    DrawRectangle(a->x - a->size*3, a->y - a->size*3, a->size*6, a->size*6, (Color){200, 200, 200, 255});   
+                    DrawRectangleRec(r, (Color){200, 200, 200, 255});   
                 }
                 DrawText(TextFormat("A%d", i), a->x, a->y, 4, (Color){0, 0, 0, 255});
             }
 
             for (int i = 0; i < 5; i++) {
-                target t = targets[i];
-                DrawRectangle(t.x-6, t.y-6, 12, 12, (Color){200, 0, 0, 255}); 
-                DrawText(TextFormat("X%d", i), t.x, t.y, 4, (Color){0, 0, 0, 255});
+                Rectangle r = s->targets[i];
+                DrawRectangleRec(r, (Color){200, 0, 0, 255}); 
+                DrawText(TextFormat("X%d", i), r.x, r.y, 4, (Color){0, 0, 0, 255});
             }
         EndTextureMode();     
 
@@ -208,12 +217,9 @@ draw:
     //--------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
     UnloadShader(shader);       // Unload shader
-    int size = asteroids->size;
-    for (int i = 0; i < size; i++) {
-        asteroid *e = list_pop(asteroids);
-        free(e);
-    }
-    free(asteroids);
+    
+    //clean up
+    cleanup_state(s);
 
     //--------------------------------------------------------------------------------------
 
