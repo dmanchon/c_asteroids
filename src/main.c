@@ -23,6 +23,8 @@ typedef struct state state;
 struct state {
     int width, height;
     Rectangle targets[NUM_TARGETS];
+    Rectangle player;
+    int health;
     list *asteroids;
     bool time_freezed;
     int target_cursor;
@@ -33,6 +35,8 @@ state *init_state(int width, int height, int num_asteroids) {
     
     s->width = width;
     s->height = height;
+    s->player = (Rectangle) {width/2, height/2, 30, 30};
+    s->health = 10000;
 
     for (int i = 0; i < NUM_TARGETS; i++) {
         s->targets[i] = (Rectangle){width/2, height/2, 6, 6};
@@ -87,11 +91,17 @@ void update_state(state *s) {
 
 
         // colisions with targets
+        Rectangle r = {a->x, a->y, a->size, a->size};
+
         for (int j = 0; j < 5; j++) {
-            Rectangle r = {a->x, a->y, a->size, a->size};
             if (CheckCollisionRecs(r, s->targets[j])) {
                 a->countdown = 60/2; // 500ms at 60fps    
             }
+        }
+
+        // colisions with player
+        if (CheckCollisionRecs(r, s->player)) {
+            s->health -= a->size;
         }
 
         // time for destruction
@@ -106,7 +116,7 @@ void update_state(state *s) {
 
         if (a->countdown == 0) {
             // split and create small parts only if big enough
-            if (a->size > 50) {
+            if (a->size > 40) {
                 for (int i = 0; i < 4; i++) {
                     asteroid *splinter = malloc(sizeof(asteroid));
                     splinter->speed_x = a->speed_x;
@@ -182,6 +192,8 @@ int main(void)
             ClearBackground(RAYWHITE);  // Clear texture background
             DrawFPS(100, 100);
 
+            DrawRectangleRec(s->player, (Color) {0, 0, 255, 200});
+
             for (int i = 0; i < s->asteroids->size; i++) {
                 asteroid *a = list_get(s->asteroids, i);
                 Rectangle r = {a->x, a->y, a->size, a->size};
@@ -198,11 +210,12 @@ int main(void)
                 DrawRectangleRec(r, (Color){200, 0, 0, 255}); 
                 DrawText(TextFormat("X%d", i), r.x, r.y, 4, (Color){0, 0, 0, 255});
             }
+            DrawText(TextFormat("Power: %d", s->health), 100, 200, 20, GREEN);
+
         EndTextureMode();     
 
         BeginDrawing();
-           ClearBackground(RAYWHITE);  // Clear screen background
-
+            ClearBackground(RAYWHITE);  // Clear screen background
             // Render generated texture using selected postprocessing shader
             BeginShaderMode(shader);
                 // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom)
