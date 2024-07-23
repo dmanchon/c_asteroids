@@ -36,7 +36,7 @@ state *init_state(int width, int height, int num_asteroids) {
     s->width = width;
     s->height = height;
     s->player = (Rectangle) {width/2, height/2, 30, 30};
-    s->health = 10000;
+    s->health = 500;
 
     for (int i = 0; i < NUM_TARGETS; i++) {
         s->targets[i] = (Rectangle){width/2, height/2, 6, 6};
@@ -101,7 +101,7 @@ void update_state(state *s) {
 
         // colisions with player
         if (CheckCollisionRecs(r, s->player)) {
-            s->health -= a->size;
+            s->health -= (a->size/100);
         }
 
         // time for destruction
@@ -210,7 +210,10 @@ int main(void)
                 DrawRectangleRec(r, (Color){200, 0, 0, 255}); 
                 DrawText(TextFormat("X%d", i), r.x, r.y, 4, (Color){0, 0, 0, 255});
             }
-            DrawText(TextFormat("Power: %d", s->health), 100, 200, 20, GREEN);
+            
+            DrawRectangle(s->width/2-250, 25, 500, 12, LIGHTGRAY);
+            DrawRectangle(s->width/2-250, 25, s->health, 12, MAROON);
+            DrawRectangleLines(s->width/2-250, 25, 500, 12, GRAY);
 
         EndTextureMode();     
 
