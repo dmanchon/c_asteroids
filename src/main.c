@@ -2,6 +2,7 @@
 #include "list.h"
 #include "raylib.h"
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include <math.h>
 
@@ -63,7 +64,8 @@ state *init_state(int width, int height, int num_asteroids) {
 
 void update_state(state *s) {
     for (int i = 0; i < s->asteroids->size; i++) {
-        asteroid *a = list_get(s->asteroids, i);
+        list_node *na =  list_get(s->asteroids, i);
+        asteroid *a = na->data;
         
         // update position
         a->accel_x *= 0.7;
@@ -108,13 +110,39 @@ void update_state(state *s) {
         if (a->countdown != NOT_STARTED) {
             a->countdown--;
         }
+
+        // collisions between asteroids
+        for (int j = 0; j < s->asteroids->size; j++) {
+            if (i == j) continue;
+
+            list_node *nb = list_get(s->asteroids, j);
+            asteroid *b = nb->data;
+
+
+            Rectangle rp = {b->x, b->y, b->size, b->size};
+            if (CheckCollisionRecs(r, rp) && a->size >0 && b->size > 0) {
+                float Cr = 0.99999;
+                float va = (Cr * b->size * (b->speed_x - a->speed_x) + a->size*a->speed_x + b->size*b->speed_x) / (a->size + b->size);
+                float vb = (Cr * a->size * (a->speed_x - b->speed_x) + a->size*a->speed_x + b->size*b->speed_x) / (a->size + b->size);
+
+                a->speed_x = va;
+                b->speed_x = vb;
+               
+                va = (Cr * b->size * (b->speed_y - a->speed_y) + a->size*a->speed_y + b->size*b->speed_y) / (a->size + b->size);
+                vb = (Cr * a->size * (a->speed_y - b->speed_y) + a->size*a->speed_y + b->size*b->speed_y) / (a->size + b->size);
+
+                a->speed_y = va;
+                b->speed_y = vb;
+
+            }
+        }
     }
 
     list_node *n = s->asteroids->head;
     while (n) {
         asteroid *a = n->data;
 
-        if (a->countdown == 0) {
+        if (a->countdown == 0 || a->size == 0) {
             // split and create small parts only if big enough
             if (a->size > 40) {
                 for (int i = 0; i < 4; i++) {
@@ -197,7 +225,7 @@ int main(void)
             DrawRectangleRec(s->player, (Color) {0, 0, 255, 200});
 
             for (int i = 0; i < s->asteroids->size; i++) {
-                asteroid *a = list_get(s->asteroids, i);
+                asteroid *a = list_get(s->asteroids, i)->data;
                 Rectangle r = {a->x, a->y, a->size, a->size};
                 if (a->countdown >= 0) {
                     DrawRectangleRec(r, (Color){255, 200, 200, 255});   

@@ -87,7 +87,7 @@ void list_insert_after(list* l, void* data, int index) {
     n->next = new;
 }
 
-void* list_get(list* l, int index) {
+list_node* list_get(list* l, int index) {
     if (!l->head || l->size <= index) {
         return NULL;
     }
@@ -97,7 +97,7 @@ void* list_get(list* l, int index) {
         n = n->next;
     }
 
-    return n->data;
+    return n;
 }
 
 void list_delete(list *l, int index) {
