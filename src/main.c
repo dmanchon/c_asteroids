@@ -172,19 +172,21 @@ int main(void)
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
-
         if (!IsKeyDown(KEY_SPACE)) {
             // Update state
             update_state(s);
+        } else {
+            s->health--;
         }
 
         // input
-        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT) && s->health > 0) {
             int i = s->target_cursor++ % 5;
             Vector2 pos = GetMousePosition();
             s->targets[i].x = pos.x;
             s->targets[i].y = pos.y;
         }
+        
 
         // Draw
         //----------------------------------------------------------------------------------
@@ -222,7 +224,13 @@ int main(void)
             // Render generated texture using selected postprocessing shader
             BeginShaderMode(shader);
                 // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom)
-                DrawTextureRec(canvas.texture, (Rectangle){ 0, 0, (float)canvas.texture.width, (float)-canvas.texture.height }, (Vector2){ 0, 0 }, WHITE);
+                if (s->health <= 0) {
+                    DrawTextureRec(canvas.texture, (Rectangle){ 0, 0, (float)canvas.texture.width, (float)-canvas.texture.height }, (Vector2){ 0, 0 }, BLUE);
+                    int text_w = MeasureText("GAME OVER", 60);
+                    DrawText("GAME OVER", s->width/2-text_w/2, s->height/2, 60, (Color){255, 255, 255, 255});
+                } else {
+                    DrawTextureRec(canvas.texture, (Rectangle){ 0, 0, (float)canvas.texture.width, (float)-canvas.texture.height }, (Vector2){ 0, 0 }, WHITE);
+                }
             EndShaderMode();
 
         EndDrawing();

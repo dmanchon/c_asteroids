@@ -156,4 +156,5 @@ list_node *list_delete_node(list *l, list_node *node) {
         prev = n;
         n = n->next;
     }
+    return NULL;
 }
